@@ -47,7 +47,7 @@ a {
 .lwallh, .lwallhm {	margin-top: -14px; }
 /* settings for specific tile width/height END  */
 
-.lgrid, .Llgrid { background-image: url(/img/_grids.gif); }
+.lgrid, .Llgrid { background-image: url(../img/_grids.gif); }
 .g1 { background-position: -30px 0px; }
 .g2 { background-position: -60px 0px; }
 .g3 { background-position: -90px 0px; }
@@ -60,7 +60,7 @@ a {
 .g10 { background-position: 0px 0px; }
 .g11 { background-position: -390px 0px; }
 
-.lfloor, .Llfloor { background-image: url(/img/_floors.gif); }
+.lfloor, .Llfloor { background-image: url(../img/_floors.gif); }
 .f1 { background-position: -30px 0px; }
 .f2 { background-position: -60px 0px; }
 .f3 { background-position: -90px 0px; }
@@ -75,7 +75,7 @@ a {
 .f12 { background-position: -360px 0px; }
 .f13 { background-position: -390px 0px; }
 
-.lfloorm, .Llfloorm { background-image: url(/img/_floors_mark.gif); }
+.lfloorm, .Llfloorm { background-image: url(../img/_floors_mark.gif); }
 .fm1 { background-position: -30px 0px; }
 .fm2 { background-position: -60px 0px; }
 .fm3 { background-position: -90px 0px; }
@@ -93,7 +93,7 @@ a {
 .fm15 { background-position: -450px 0px; }
 .fm16 { background-position: -480px 0px; }
 
-.lwallv, .Llwallv { background-image: url(/img/_wallsv.gif); }
+.lwallv, .Llwallv { background-image: url(../img/_wallsv.gif); }
 .w1v { background-position: -30px 0px; }
 .w2v { background-position: -60px 0px; }
 .w3v { background-position: -90px 0px; }
@@ -107,7 +107,7 @@ a {
 .w11v { background-position: -330px 0px; }
 .w12v { background-position: -360px 0px; }
 
-.lwallh, .Llwallh { background-image: url(/img/_wallsh.gif); }
+.lwallh, .Llwallh { background-image: url(../img/_wallsh.gif); }
 .w1h { background-position: 0px -30px; }
 .w2h { background-position: 0px -60px; }
 .w3h { background-position: 0px -90px; }
@@ -121,7 +121,7 @@ a {
 .w11h { background-position: 0px -330px; }
 .w12h { background-position: 0px -360px; }
 
-.lwallvm, .Llwallvm { background-image: url(/img/_wallsv_mark.gif); }
+.lwallvm, .Llwallvm { background-image: url(../img/_wallsv_mark.gif); }
 .wm1v { background-position: -30px 0px; }
 .wm2v { background-position: -60px 0px; }
 .wm3v { background-position: -90px 0px; }
@@ -137,7 +137,7 @@ a {
 .wm13v { background-position: -390px 0px; }
 .wm14v { background-position: -420px 0px; }
 
-.lwallhm, .Llwallhm { background-image: url(/img/_wallsh_mark.gif); }
+.lwallhm, .Llwallhm { background-image: url(../img/_wallsh_mark.gif); }
 .wm1h { background-position: 0px -30px; }
 .wm2h { background-position: 0px -60px; }
 .wm3h { background-position: 0px -90px; }
@@ -153,6 +153,6 @@ a {
 .wm13h { background-position: 0px -390px; }
 .wm14h { background-position: 0px -420px; }
 
-.Licon.ln1 { background-image: url(/img/_grids.gif); background-position: -300px 0px; }
-.ln2, .Licon.ln2 { background-image: url(/img/_grids.gif); background-position: -330px 0px; }
-.Licon.ln3 { background-image: url(/img/_grids.gif); background-position: -360px 0px; }
+.Licon.ln1 { background-image: url(../img/_grids.gif); background-position: -300px 0px; }
+.ln2, .Licon.ln2 { background-image: url(../img/_grids.gif); background-position: -330px 0px; }
+.Licon.ln3 { background-image: url(../img/_grids.gif); background-position: -360px 0px; }
