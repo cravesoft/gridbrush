@@ -529,7 +529,7 @@ export default {
             fill="none"
             rx="2"
             ry="2"
-            clip-path="url(#w5v-clip-path)"
+            clipPath="url(#w5v-clip-path)"
           />
           <line x1="12" y1="20" x2="12" y2="24" />
         </g>
@@ -558,7 +558,7 @@ export default {
             fill="none"
             rx="2"
             ry="2"
-            clip-path="url(#w6v-clip-path)"
+            clipPath="url(#w6v-clip-path)"
           />
           <line x1="12" y1="20" x2="12" y2="24" />
         </g>
