@@ -8,14 +8,6 @@ const displayNotification = options =>
     autoDismiss: options.autoDismiss || 4,
     action: options.action || null,
   });
-const isNotificationAlreadyOpen = title => {
-  if (notif.state.notifications.length) {
-    for (let i = 0; i < notif.state.notifications.length; i++) {
-      if (notif.state.notifications[i].title === title) return true;
-    }
-  }
-  return false;
-};
 
 export default {
   init: notificationSystem => (notif = notificationSystem),
@@ -44,18 +36,6 @@ export default {
       message: 'Please reduce the cell size.',
       level: 'error',
     }),
-
-  resizeGridPrompt: callback => {
-    const title = 'Window size changed';
-    if (!isNotificationAlreadyOpen(title)) {
-      return displayNotification({
-        title: title,
-        message: 'Do you want to adapt the grid size to your new window size?',
-        level: 'info',
-        action: { label: 'Resize grid', callback },
-      });
-    }
-  },
 
   /* CONTROLS */
   cantSaveBrush: message =>

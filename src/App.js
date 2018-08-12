@@ -27,10 +27,7 @@ class App extends Component {
       borderSize: configData.borderSize,
       randomSeed: configData.randomSeed,
       showGridlines: configData.showGridlines,
-      colSize: utils.getColSize(),
       gridSize: utils.getGridSize(),
-      totalCells: utils.getTotalCells(),
-      wrapperWidth: { width: `${utils.getWrapperWidth()}px` },
       gridsLibraryNames: null,
       activeGrid: { name: null, exportString: null },
       colorTheme: configData.colorTheme,
@@ -40,9 +37,12 @@ class App extends Component {
       displayGrid: null,
       currentBrush: null,
       currentLayer: null,
+      isPanning: false,
+      displacement: { x: 0, y: 0 },
     };
-    this.pos = 'center';
-    this.resizeTimer = null;
+    this.startPanCoord = null;
+    this.startPanDisplacement = null;
+    this.currentPos = 'center';
     this.pixelRatio = window.devicePixelRatio;
     this.currentIndexChanged = {};
     this.changeColorTheme = this.changeColorTheme.bind(this);
@@ -56,9 +56,9 @@ class App extends Component {
     this.loadGridFromDb = this.loadGridFromDb.bind(this);
     this.importBrush = this.importBrush.bind(this);
     this.loadBrushFromDb = this.loadBrushFromDb.bind(this);
-    this.displayResizeGridPrompt = this.displayResizeGridPrompt.bind(this);
     this.onResize = this.onResize.bind(this);
     this.handleCellChangeState = this.handleCellChangeState.bind(this);
+    this.handleZoom = this.handleZoom.bind(this);
     this.stopClickDrag = this.stopClickDrag.bind(this);
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
     this.switchShowGridlines = this.switchShowGridlines.bind(this);
@@ -91,9 +91,7 @@ class App extends Component {
       grid: utils.createGrid(),
       displayGrid: utils.createGrid(),
       showLayers: utils.createShowLayers(),
-      colSize: utils.getColSize(),
       gridSize: utils.getGridSize(),
-      totalCells: utils.getTotalCells(),
       activeGrid: { name: null, exportString: null },
     });
   }
@@ -111,14 +109,10 @@ class App extends Component {
     utils.initGridData(newCellSize);
     let newState = {
       cellSize: newCellSize,
-      totalCells: utils.getTotalCells(),
       gridSize: utils.getGridSize(),
     };
     this.setState(newState, () => {
       config.save(configToSave);
-      this.state.activeGrid.name
-        ? this.loadGridFromDb(this.state.activeGrid.type, this.state.activeGrid.name)
-        : this.resetGrid();
     });
   }
 
@@ -207,7 +201,6 @@ class App extends Component {
       notif.cellSizeChanged();
     }
     this.setState({
-      colSize: utils.getColSize(),
       activeGrid: {
         name: gridData.name,
         exportString: gridData.exportString,
@@ -219,9 +212,7 @@ class App extends Component {
 
   loadGridFromDb(type, name) {
     const gridData =
-      type === 'user'
-        ? gridsHandler.loadUserGrid(name)
-        : gridsLibrary[name];
+      type === 'user' ? gridsHandler.loadUserGrid(name) : gridsLibrary[name];
     this.loadGrid(gridData, type);
   }
 
@@ -264,7 +255,6 @@ class App extends Component {
     }
     this.setState(
       {
-        colSize: utils.getColSize(),
         activeGrid: {
           name: brushData.name,
           exportString: brushData.exportString,
@@ -282,7 +272,7 @@ class App extends Component {
     this.loadBrush(brushData, type);
   }
 
-  displayResizeGridPrompt() {
+  onResize() {
     // Prevent displaying the resize Grid prompt if the user mobile
     // virtual keyboard is showing up (which trigger a resize event)
     if (
@@ -291,19 +281,9 @@ class App extends Component {
     )
       return;
     this.windowWidth = window.innerWidth;
-    // When window is resized, ask if the user wants
-    // to adapt the svg size to the new window size
-    notif.resizeGridPrompt(() => {
-      utils.initGridData(this.state.cellSize, true);
-      // Redraw the svg with the new size
-      this.changeCellSize(undefined);
-    });
-  }
-
-  onResize() {
-    // Debounce resize
-    if (this.resizeTimer) clearTimeout(this.resizeTimer);
-    this.resizeTimer = setTimeout(this.displayResizeGridPrompt, 200);
+    utils.initGridData(this.state.cellSize, true);
+    // Redraw the svg with the new size
+    this.changeCellSize(undefined);
   }
 
   updateNeighbor(gridName, grid, newCell) {
@@ -362,6 +342,30 @@ class App extends Component {
     if (x < 0 || x > svgWidth || y < 0 || y > svgHeight) {
       return;
     }
+    if (buttonPressedCode === 4) {
+      if (event.type === 'mousedown') {
+        this.startPanCoord = {
+          x: event.pageX,
+          y: event.pageY,
+        };
+        this.startPanDisplacement = this.state.displacement;
+        this.setState({
+          isPanning: true,
+        });
+      } else if (event.type === 'mousemove') {
+        const displacement = {
+          x: this.startPanDisplacement.x + event.pageX - this.startPanCoord.x,
+          y: this.startPanDisplacement.y + event.pageY - this.startPanCoord.y,
+        };
+        this.setState({
+          isPanning: true,
+          displacement,
+        });
+      }
+      return event.preventDefault();
+    }
+    x -= this.state.displacement.x;
+    y -= this.state.displacement.y;
     let cellSize = this.state.cellSize;
     let col = Math.floor(x / cellSize);
     let row = Math.floor(y / cellSize);
@@ -372,50 +376,50 @@ class App extends Component {
       if (buttonPressedCode !== 1) {
         let diff = x % cellSize;
         if (diff < 5) {
-          this.pos = 'left';
+          this.currentPos = 'left';
         } else if (cellSize - diff < 5) {
-          this.pos = 'right';
+          this.currentPos = 'right';
         } else {
           diff = y % cellSize;
           if (diff < 5) {
-            this.pos = 'top';
+            this.currentPos = 'top';
           } else if (cellSize - diff < 5) {
-            this.pos = 'bottom';
+            this.currentPos = 'bottom';
           }
         }
       } else {
         let diff = x % cellSize;
-        if (diff < 5 && this.pos === 'right') {
-          this.pos = 'left';
-        } else if (cellSize - diff < 5 && this.pos === 'left') {
-          this.pos = 'right';
+        if (diff < 5 && this.currentPos === 'right') {
+          this.currentPos = 'left';
+        } else if (cellSize - diff < 5 && this.currentPos === 'left') {
+          this.currentPos = 'right';
         } else {
           diff = y % cellSize;
-          if (diff < 5 && this.pos === 'bottom') {
-            this.pos = 'top';
-          } else if (cellSize - diff < 5 && this.pos === 'top') {
-            this.pos = 'bottom';
+          if (diff < 5 && this.currentPos === 'bottom') {
+            this.currentPos = 'top';
+          } else if (cellSize - diff < 5 && this.currentPos === 'top') {
+            this.currentPos = 'bottom';
           }
         }
       }
-      neighborIndex = utils.getNeighborIndex(cellIndex, this.pos);
+      neighborIndex = utils.getNeighborIndex(cellIndex, this.currentPos);
       neighborPos =
-        this.pos === 'top'
+        this.currentPos === 'top'
           ? 'bottom'
-          : this.pos === 'bottom'
+          : this.currentPos === 'bottom'
             ? 'top'
-            : this.pos === 'left'
+            : this.currentPos === 'left'
               ? 'right'
               : 'left';
     } else {
-      this.pos = 'center';
+      this.currentPos = 'center';
     }
     // if mouse over the svg but not clicking
     const newCell = {
       col: col,
       row: row,
       content: {
-        [this.pos]: currentBrush,
+        [this.currentPos]: currentBrush,
       },
     };
     const newNeighborCell = {
@@ -489,6 +493,9 @@ class App extends Component {
 
       this.currentIndexChanged[cellIndex] = true;
     }
+    if (buttonPressedCode !== 1) {
+      return event.preventDefault();
+    }
     let i = utils.findCellIndex(grid[currentLayer], col, row);
     if (i !== -1) {
       newCell.content = {
@@ -555,8 +562,36 @@ class App extends Component {
     }
   }
 
+  handleZoom(event) {
+    const sign = event.deltaY > 0 ? -1 : 1;
+    const delta = sign * 0.07 * this.state.cellSize;
+    const newCellSize = this.state.cellSize + delta;
+    if (event.deltaY < 0) {
+      const displacement = {
+        x:
+          this.state.displacement.x -
+          0.1 * (event.pageX - window.innerWidth / 2),
+        y:
+          this.state.displacement.y -
+          0.1 * (event.pageY - window.innerHeight / 2),
+      };
+      this.setState(
+        {
+          displacement,
+        },
+        () => {}
+      );
+      this.changeCellSize(newCellSize);
+    } else {
+      this.changeCellSize(newCellSize);
+    }
+  }
+
   stopClickDrag() {
     this.currentIndexChanged = {};
+    this.setState({
+      isPanning: false,
+    });
   }
 
   handleMouseLeave() {
@@ -639,9 +674,6 @@ class App extends Component {
     const gridPathData = `M ${this.state.cellSize} 0 L 0 0 0 ${
       this.state.cellSize
     }`;
-    const borderPathData = `M 0 ${wrapperHeight *
-      this.pixelRatio} L ${wrapperWidth * this.pixelRatio} ${wrapperHeight *
-      this.pixelRatio} ${wrapperWidth * this.pixelRatio} 0`;
     return (
       <div
         className="main-wrapper"
@@ -655,6 +687,7 @@ class App extends Component {
         </script>
         <svg
           id="grid"
+          className={`${this.state.isPanning ? 'panning' : ''}`}
           version="1.1"
           baseProfile="full"
           xmlns="http://www.w3.org/2000/svg"
@@ -669,9 +702,12 @@ class App extends Component {
           onTouchStart={this.handleCellChangeState}
           onTouchMove={this.handleCellChangeState}
           onTouchEnd={this.stopClickDrag}
+          onWheel={this.handleZoom}
         >
           <defs>
             <pattern
+              x={this.state.displacement.x}
+              y={this.state.displacement.y}
               id="grid-pattern"
               width={this.state.cellSize}
               height={this.state.cellSize}
@@ -700,27 +736,17 @@ class App extends Component {
                 key={layerName}
                 name={layerName}
                 cellSize={this.state.cellSize}
-                totalCells={this.state.totalCells}
-                colSize={this.state.colSize}
-                content={this.state.displayGrid[layerName]}
+                cells={this.state.displayGrid[layerName]}
+                displacement={this.state.displacement}
               />
             );
           })}
           {this.state.showGridlines ? (
-            <g>
-              <rect width="100%" height="100%" fill="url(#grid-pattern)" />
-              <path
-                d={borderPathData}
-                fill="none"
-                stroke="gray"
-                strokeWidth={this.state.borderSize}
-              />
-            </g>
+            <rect width="100%" height="100%" fill="url(#grid-pattern)" />
           ) : null}
         </svg>
         <Controls
           resetGrid={this.resetGrid}
-          gridSize={this.state.gridSize}
           showGridlines={this.state.showGridlines}
           customColor={this.state.customColor}
           switchShowGridlines={this.switchShowGridlines}

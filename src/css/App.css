@@ -16,6 +16,10 @@
   touch-action: none;
 }
 
+#grid.panning {
+  cursor: grabbing;
+}
+
 a {
   color: inherit;
 }

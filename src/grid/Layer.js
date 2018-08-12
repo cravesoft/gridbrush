@@ -3,12 +3,12 @@ import Cell from './Cell';
 
 class Layer extends Component {
   render() {
-    const { name, cellSize, content } = this.props;
+    const { name, cellSize, cells, displacement } = this.props;
     return (
       <g id={name}>
-        {content.map((cell, i) => {
-          const xPos = cell.col * cellSize;
-          const yPos = cell.row * cellSize;
+        {cells.map((cell, i) => {
+          const xPos = cell.col * cellSize + displacement.x;
+          const yPos = cell.row * cellSize + displacement.y;
           return (
             <Cell
               key={i}

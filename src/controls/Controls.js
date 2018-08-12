@@ -120,9 +120,9 @@ class Controls extends Component {
   }
 
   handleGridChange(type, event) {
-    const gridName = event.target.value
-    if (gridName === 'Load a grid') return this.props.resetGrid()
-    this.props.loadGridFromDb(type, gridName)
+    const gridName = event.target.value;
+    if (gridName === 'Load a grid') return this.props.resetGrid();
+    this.props.loadGridFromDb(type, gridName);
   }
 
   resetGrid() {
@@ -336,8 +336,8 @@ class Controls extends Component {
               <div className="info title" title={gridTitle}>
                 {gridTitle}
               </div>
-              <div className="info grid-size">
-                {this.props.gridSize[0] + 'x' + this.props.gridSize[1]}
+              <div className="info grid-coords">
+                {`[${this.props.col}, ${this.props.row}]`}
               </div>
               <div className="info cells-graph">
                 <div
@@ -347,17 +347,14 @@ class Controls extends Component {
                       colorThemes[this.props.colorTheme].deadCell,
                   }}
                 >
-                  <span className="background-alive"> </span>
                   <span
                     className="value"
                     style={{
                       color: colorThemes[this.props.colorTheme].cellGraphText,
                     }}
-                  >{`[${utils.formatDigits(
-                    this.props.col
-                  )}, ${utils.formatDigits(this.props.row)}], ${
-                    this.props.currentLayer
-                  }, ${this.props.currentBrush}`}</span>
+                  >{`${this.props.currentLayer}, ${
+                    this.props.currentBrush
+                  }`}</span>
                 </div>
               </div>
               <div className="info options">
@@ -432,41 +429,53 @@ class Controls extends Component {
                   />
                 </li>
 
-                {Array.isArray(this.props.gridsLibraryNames) ?
+                {Array.isArray(this.props.gridsLibraryNames) ? (
                   <li>
                     <div className="input-block select-wrapper">
                       <label className="input-label">
                         <span>Example grids</span>
-                        <select className="input-style"
-                                value={exampleGridSelectLabel}
-                                onChange={this.handleGridChange.bind(this, 'example')}>
-                          {this.props.gridsLibraryNames.map((el, index) =>
-                            <option key={index} value={el}>{el}</option>
-                          )}
+                        <select
+                          className="input-style"
+                          value={exampleGridSelectLabel}
+                          onChange={this.handleGridChange.bind(this, 'example')}
+                        >
+                          {this.props.gridsLibraryNames.map((el, index) => (
+                            <option key={index} value={el}>
+                              {el}
+                            </option>
+                          ))}
                         </select>
                       </label>
                     </div>
                   </li>
-                  : ''
-                }
+                ) : (
+                  ''
+                )}
 
-                {userGridsNames ?
+                {userGridsNames ? (
                   <li>
                     <div className="input-block select-wrapper">
                       <label className="input-label">
                         <span>Your grids</span>
-                        <select className="input-style"
-                                value={userGridSelectLabel}
-                                onChange={this.handleGridChange.bind(this, 'user')}>
+                        <select
+                          className="input-style"
+                          value={userGridSelectLabel}
+                          onChange={this.handleGridChange.bind(this, 'user')}
+                        >
                           {userGridsNames.map((el, index) => {
-                            return <option key={index} value={el}>{el}</option>
+                            return (
+                              <option key={index} value={el}>
+                                {el}
+                              </option>
+                            );
                           })}
                         </select>
                       </label>
                     </div>
                   </li>
-                  : ''
-                }
+                ) : (
+                  ''
+                )}
 
                 <li>
                   <div className="input-block">

@@ -4,13 +4,7 @@ let windowWidth = window.innerWidth;
 let windowHeight = window.innerHeight;
 const bodyPaddingX = configData.bodyPaddingX;
 const bodyPaddingY = configData.bodyPaddingY;
-let roundedCol,
-  roundedRow,
-  wrapperWidth,
-  wrapperHeight,
-  colSize,
-  rowSize,
-  cellsCount;
+let wrapperWidth, wrapperHeight, colSize, rowSize;
 
 export default {
   initGridData: (cellSize, isResize) => {
@@ -18,13 +12,10 @@ export default {
       windowWidth = window.innerWidth;
       windowHeight = window.innerHeight;
     }
-    roundedCol = Math.floor((windowWidth - bodyPaddingX * 2) / cellSize);
-    roundedRow = Math.floor((windowHeight - bodyPaddingY * 2) / cellSize);
-    wrapperWidth = roundedCol * cellSize;
-    wrapperHeight = roundedRow * cellSize;
-    colSize = roundedCol;
+    wrapperWidth = windowWidth - bodyPaddingX * 2;
+    wrapperHeight = windowHeight - bodyPaddingY * 2;
+    colSize = Math.floor(wrapperWidth / cellSize);
     rowSize = Math.floor(wrapperHeight / cellSize);
-    cellsCount = rowSize * colSize;
   },
 
   // Predict if the grid will have enough space to paint
@@ -102,8 +93,6 @@ export default {
   formatDigits: totalCellsNumber =>
     totalCellsNumber.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,'),
 
-  getTotalCells: () => cellsCount,
-
   getWrapperWidth: () => wrapperWidth,
 
   getWrapperHeight: () => wrapperHeight,
@@ -128,67 +117,14 @@ export default {
       ? 'mobile'
       : 'desktop',
 
-  //TODO remove?
-  getNeighborsIndexes: index => {
-    const position = index + 1;
-    let neighborsIndexes = [];
-    let xAxisBorder, yAxisBorder;
-    // Detect if cell is on X or Y axis extremities
-    if (position <= colSize) xAxisBorder = 'top';
-    if (position > cellsCount - colSize) xAxisBorder = 'bottom';
-    if (position % colSize === 1) yAxisBorder = 'left';
-    if (position % colSize === 0) yAxisBorder = 'right';
-    for (let i = 0; i < 8; i++) {
-      switch (i) {
-        default:
-        case 0: // Top Row - Left
-          break;
-        case 1: // Top Row - Middle
-          if (xAxisBorder !== 'top') {
-            neighborsIndexes.push(index - colSize);
-          }
-          break;
-        case 2: // Top Row - Right
-          break;
-        case 3: // Middle Row - Left
-          if (yAxisBorder !== 'left') {
-            neighborsIndexes.push(index - 1);
-          }
-          break;
-        case 4: // Middle Row - Right
-          if (yAxisBorder !== 'right') {
-            neighborsIndexes.push(index + 1);
-          }
-          break;
-        case 5: // Bottom Row - Left
-          break;
-        case 6: // Bottom Row - Middle
-          if (xAxisBorder !== 'bottom') {
-            neighborsIndexes.push(index + colSize);
-          }
-          break;
-        case 7: // Bottom Row - Right
-          break;
-      }
-    }
-    return neighborsIndexes;
-  },
-
   getNeighborIndex: (index, border) => {
-    const position = index + 1;
-    let xAxisBorder, yAxisBorder;
-    // Detect if cell is on X or Y axis extremities
-    if (position <= colSize) xAxisBorder = 'top';
-    if (position > cellsCount - colSize) xAxisBorder = 'bottom';
-    if (position % colSize === 1) yAxisBorder = 'left';
-    if (position % colSize === 0) yAxisBorder = 'right';
-    if (border === 'top' && xAxisBorder !== 'top') {
+    if (border === 'top') {
       return index - colSize;
-    } else if (border === 'left' && yAxisBorder !== 'left') {
+    } else if (border === 'left') {
       return index - 1;
-    } else if (border === 'right' && yAxisBorder !== 'right') {
+    } else if (border === 'right') {
       return index + 1;
-    } else if (border === 'bottom' && xAxisBorder !== 'bottom') {
+    } else if (border === 'bottom') {
       return index + colSize;
     }
     return null;
