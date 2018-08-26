@@ -19,7 +19,6 @@ import '../css/controls/Controls.css';
 import '../css/controls/Modal.css';
 const configData = config.get();
 const themesList = utils.getSelectList(Object.keys(colorThemes));
-const cellSizeList = utils.getSelectList(configData.cellSizesList);
 const borderSizeList = utils.getSelectList(configData.borderSizesList);
 
 class Controls extends Component {
@@ -60,7 +59,6 @@ class Controls extends Component {
     //this.deleteBrush = this.deleteBrush.bind(this);
     this.getMenuMaxHeight = this.getMenuMaxHeight.bind(this);
     this.onResize = this.onResize.bind(this);
-    this.changeCellSize = this.changeCellSize.bind(this);
     this.changeBorderSize = this.changeBorderSize.bind(this);
     this.handleResetGridModal = this.handleResetGridModal.bind(this);
     this.handleDownloadGridModal = this.handleDownloadGridModal.bind(this);
@@ -105,12 +103,6 @@ class Controls extends Component {
 
   changeColorTheme(event) {
     this.props.changeColorTheme(event.target.value);
-  }
-
-  changeCellSize(event) {
-    const newSize =
-      event.target.value !== '' ? parseInt(event.target.value, 10) : 0;
-    this.props.changeCellSize(newSize);
   }
 
   changeBorderSize(event) {
@@ -406,16 +398,6 @@ class Controls extends Component {
                     defaultValue={this.props.colorTheme}
                     options={themesList}
                     handleChange={this.changeColorTheme}
-                  />
-                </li>
-
-                <li>
-                  <Select
-                    label="Cell size (in px)"
-                    type="cell"
-                    defaultValue={this.props.cellSize}
-                    options={cellSizeList}
-                    handleChange={this.changeCellSize}
                   />
                 </li>
 
