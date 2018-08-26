@@ -28,6 +28,7 @@ export default {
       padding: '15px',
     },
   },
+  activeGrid: null,
   layers: {
     lgrid: [
       'eraser',

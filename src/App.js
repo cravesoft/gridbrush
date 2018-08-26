@@ -87,14 +87,20 @@ class App extends Component {
   }
 
   resetGrid() {
-    this.setState({
-      grid: utils.createGrid(),
-      displayGrid: utils.createGrid(),
-      showLayers: utils.createShowLayers(),
-      gridSize: utils.getGridSize(),
-      displacement: { x: 0, y: 0 },
-      activeGrid: { name: null, exportString: null },
-    });
+    const configToSave = { activeGrid: null };
+    this.setState(
+      {
+        grid: utils.createGrid(),
+        displayGrid: utils.createGrid(),
+        showLayers: utils.createShowLayers(),
+        gridSize: utils.getGridSize(),
+        displacement: { x: 0, y: 0 },
+        activeGrid: { name: null, exportString: null },
+      },
+      () => {
+        config.save(configToSave);
+      }
+    );
   }
 
   changeCellSize(cellSize) {
@@ -142,7 +148,15 @@ class App extends Component {
     };
     gridsHandler.saveUserGrid(gridData);
     const exportString = gridsHandler.loadUserGrid(name).exportString;
-    this.setState({ activeGrid: { type: 'user', name, exportString } });
+    const configToSave = { activeGrid: { type: 'user', name } };
+    this.setState(
+      {
+        activeGrid: { type: 'user', name, exportString },
+      },
+      () => {
+        config.save(configToSave);
+      }
+    );
   }
 
   downloadGrid(format, filename) {
@@ -182,7 +196,7 @@ class App extends Component {
     this.loadGridFromDb('user', gridData.name);
   }
 
-  loadGrid(gridData) {
+  loadGrid(gridData, type) {
     const gridSize = this.state.gridSize;
     // If grid size is bigger than actual grid size,
     // reduce cell size to make it fit
@@ -201,14 +215,21 @@ class App extends Component {
       notif.clearAll();
       notif.cellSizeChanged();
     }
-    this.setState({
-      activeGrid: {
-        name: gridData.name,
-        exportString: gridData.exportString,
+    const configToSave = { activeGrid: { type, name: gridData.name } };
+    this.setState(
+      {
+        activeGrid: {
+          type,
+          name: gridData.name,
+          exportString: gridData.exportString,
+        },
+        displayGrid: gridData.grid,
+        grid: gridData.grid,
       },
-      displayGrid: gridData.grid,
-      grid: gridData.grid,
-    });
+      () => {
+        config.save(configToSave);
+      }
+    );
   }
 
   loadGridFromDb(type, name) {
@@ -661,7 +682,14 @@ class App extends Component {
         let gridsLibraryNames = Object.keys(response);
         gridsLibraryNames.unshift('Load a grid');
         gridsLibrary = response;
-        this.setState({ gridsLibraryNames });
+        this.setState({ gridsLibraryNames }, () => {
+          // Restore active grid
+          if (configData.activeGrid !== null)
+            this.loadGridFromDb(
+              configData.activeGrid.type,
+              configData.activeGrid.name
+            );
+        });
       });
   }
 
