@@ -745,7 +745,7 @@ class App extends Component {
               <path
                 d={gridPathData}
                 fill="none"
-                stroke="gray"
+                stroke="white"
                 strokeWidth={this.state.borderSize}
               />
             </pattern>
@@ -758,6 +758,9 @@ class App extends Component {
             });
           })}
 
+          {this.state.showGridlines ? (
+            <rect width="100%" height="100%" fill="url(#grid-pattern)" />
+          ) : null}
           {Object.keys(this.state.displayGrid).map(layerName => {
             if (!this.state.showLayers[layerName]) return null;
             return (
@@ -770,9 +773,6 @@ class App extends Component {
               />
             );
           })}
-          {this.state.showGridlines ? (
-            <rect width="100%" height="100%" fill="url(#grid-pattern)" />
-          ) : null}
         </svg>
         <Controls
           resetGrid={this.resetGrid}

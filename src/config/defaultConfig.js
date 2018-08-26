@@ -14,7 +14,7 @@ export default {
   cellSize: 60,
   borderSizesList: [1, 2, 3, 4, 5, 6],
   customColor: 'white',
-  borderSize: 1,
+  borderSize: 4,
   // Modal style
   modalStyle: {
     overlay: { backgroundColor: 'rgba(0, 0, 0, .5)', zIndex: 1000 },
