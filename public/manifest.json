@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Gridbrush",
+  "name": "GridBrush: create scalable vector grids",
   "icons": [
     {
       "src": "favicon.ico",
