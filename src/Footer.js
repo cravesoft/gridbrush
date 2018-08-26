@@ -81,7 +81,8 @@ export default class Footer extends Component {
               onClick={this.handleAboutModal}
             >
               About this project
-            </a>.
+            </a>
+            .
           </span>
           Created by{' '}
           <a
@@ -90,7 +91,8 @@ export default class Footer extends Component {
             rel="noopener noreferrer"
           >
             {pckg.author}
-          </a>, {pckg.license} license.
+          </a>
+          , {pckg.license} license.
         </p>
       </footer>
     );

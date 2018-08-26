@@ -92,6 +92,7 @@ class App extends Component {
       displayGrid: utils.createGrid(),
       showLayers: utils.createShowLayers(),
       gridSize: utils.getGridSize(),
+      displacement: { x: 0, y: 0 },
       activeGrid: { name: null, exportString: null },
     });
   }

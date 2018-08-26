@@ -51,7 +51,9 @@ export default class SaveGridModal extends Component {
           !this.props.activeGrid.name || !this.props.activeGrid.exportString ? (
             <form onSubmit={this.saveGrid}>
               <p>
-                To save your grid,<br />you need to give it a name.
+                To save your grid,
+                <br />
+                you need to give it a name.
               </p>
               <input
                 className="input-style"

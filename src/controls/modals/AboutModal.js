@@ -35,7 +35,8 @@ export default class AboutModal extends Component {
               rel="noopener noreferrer"
             >
               create-react-app
-            </a>.
+            </a>
+            .
           </p>
           <p>
             Created by{' '}
@@ -45,7 +46,8 @@ export default class AboutModal extends Component {
               rel="noopener noreferrer"
             >
               Olivier Crave
-            </a>, MIT License.
+            </a>
+            , MIT License.
           </p>
           <p>
             You can find the{' '}
@@ -55,7 +57,8 @@ export default class AboutModal extends Component {
               rel="noopener noreferrer"
             >
               Github repo here
-            </a>.
+            </a>
+            .
           </p>
           <button
             className="input-style small-cta"
