@@ -4,6 +4,7 @@ import ReactModal from 'react-modal';
 import { Select, Checkbox } from './inputs/index';
 import { SketchPicker } from 'react-color';
 import config from '../config/configHandler';
+import Cell from '../grid/Cell';
 import gridsHandler from '../gridsHandler';
 import colorThemes from '../config/colorThemes';
 //import ImportBrushModal from './modals/ImportBrushModal';
@@ -585,7 +586,7 @@ class Controls extends Component {
                       >
                         {configData.text[layerName]}
                       </span>
-                      {configData.layers[layerName].map(brushName => {
+                      {configData.layers[layerName].map((brushName, i) => {
                         return (
                           <div
                             className={`${
@@ -647,10 +648,22 @@ class Controls extends Component {
                                 />
                               </div>
                             ) : null}
-                            <span
-                              className={'icon L' + layerName + ' ' + brushName}
-                              type={brushName}
-                            />
+                            <svg
+                              version="1.1"
+                              baseProfile="full"
+                              xmlns="http://www.w3.org/2000/svg"
+                              width={30}
+                              height={30}
+                            >
+                              <Cell
+                                key={i}
+                                index={i}
+                                xPos={0}
+                                yPos={0}
+                                size={30}
+                                content={{ center: brushName }}
+                              />
+                            </svg>
                           </div>
                         );
                       })}
