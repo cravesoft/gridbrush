@@ -263,10 +263,6 @@ class Controls extends Component {
 
   render() {
     const isOptionsMenuOpenClass = this.state.isOptionsOpen ? 'open' : '';
-    const isShowGridlinesDisabled = this.props.cellSize < 10;
-    const showGridlinesTitle = isShowGridlinesDisabled
-      ? 'Hide the gridlines.'
-      : 'Show the gridlines.';
     const userGridsNames = gridsHandler.getUserGridsNames();
     const userGridSelectLabel =
       this.props.activeGrid.type === 'user'
@@ -386,9 +382,8 @@ class Controls extends Component {
                   <Checkbox
                     id="show-gridlines"
                     label="Show gridlines"
-                    isDisabled={isShowGridlinesDisabled}
                     isChecked={this.props.showGridlines}
-                    title={showGridlinesTitle}
+                    title="Show the gridlines."
                     handleChange={this.switchShowGridlines}
                   />
                 </li>
