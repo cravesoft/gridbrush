@@ -6,6 +6,22 @@ const bodyPaddingX = configData.bodyPaddingX;
 const bodyPaddingY = configData.bodyPaddingY;
 let wrapperWidth, wrapperHeight, colSize, rowSize;
 
+function getMinRow(array) {
+  return array.reduce((min, b) => Math.min(min, b.row), array[0].row);
+}
+
+function getMinCol(array) {
+  return array.reduce((min, b) => Math.min(min, b.col), array[0].col);
+}
+
+function getMaxRow(array) {
+  return array.reduce((max, b) => Math.max(max, b.row), array[0].row);
+}
+
+function getMaxCol(array) {
+  return array.reduce((max, b) => Math.max(max, b.col), array[0].col);
+}
+
 export default {
   initGridData: (cellSize, isResize) => {
     if (isResize) {
@@ -221,5 +237,39 @@ export default {
       canvas.toBlob(blob => callback(blob));
     };
     image.src = imgsrc;
+  },
+
+  getMinCoords: grid => {
+    const minPerLayer = Object.keys(grid)
+      .filter(layerName => {
+        if (grid[layerName].length === 0) {
+          return false;
+        }
+        return true;
+      })
+      .map(layerName => {
+        return {
+          row: getMinRow(grid[layerName]),
+          col: getMinCol(grid[layerName]),
+        };
+      });
+    return { row: getMinRow(minPerLayer), col: getMinCol(minPerLayer) };
+  },
+
+  getMaxCoords: grid => {
+    const maxPerLayer = Object.keys(grid)
+      .filter(layerName => {
+        if (grid[layerName].length === 0) {
+          return false;
+        }
+        return true;
+      })
+      .map(layerName => {
+        return {
+          row: getMaxRow(grid[layerName]),
+          col: getMaxCol(grid[layerName]),
+        };
+      });
+    return { row: getMaxRow(maxPerLayer), col: getMaxCol(maxPerLayer) };
   },
 };

@@ -121,6 +121,7 @@ class App extends Component {
     this.setState(newState, () => {
       config.save(configToSave);
     });
+    return newCellSize;
   }
 
   changeBorderSize(borderSize) {
@@ -200,6 +201,7 @@ class App extends Component {
     const gridSize = this.state.gridSize;
     // If grid size is bigger than actual grid size,
     // reduce cell size to make it fit
+    let cellSize = this.state.cellSize;
     if (
       gridSize[0] < gridData.gridSize[0] ||
       gridSize[1] < gridData.gridSize[1]
@@ -211,10 +213,16 @@ class App extends Component {
       );
       // If grid is still too big even with minimal
       // cell size, display notif
-      this.changeCellSize(newCellValues);
+      cellSize = this.changeCellSize(newCellValues);
       notif.clearAll();
       notif.cellSizeChanged();
     }
+    // Translate all cells to have the grid centered on the screen
+    const min = utils.getMinCoords(gridData.grid);
+    const displacement = {
+      x: -min.col * cellSize,
+      y: -min.row * cellSize,
+    };
     const configToSave = { activeGrid: { type, name: gridData.name } };
     this.setState(
       {
@@ -225,6 +233,7 @@ class App extends Component {
         },
         displayGrid: gridData.grid,
         grid: gridData.grid,
+        displacement,
       },
       () => {
         config.save(configToSave);
