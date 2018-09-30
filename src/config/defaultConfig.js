@@ -28,6 +28,10 @@ export default {
       padding: '15px',
     },
   },
+  // Default text options
+  showText: true,
+  textSize: 25,
+  textColor: 'rgba(0, 0, 0, 1)',
   activeGrid: null,
   layers: {
     lgrid: [
@@ -91,7 +95,7 @@ export default {
       'wm8v',
       'wm9v',
     ],
-    lnotes: ['eraser', 'ln1', 'ln2', 'ln3'],
+    lnotes: ['eraser', 'ln3'],
   },
   text: {
     // Layer short names
@@ -182,8 +186,6 @@ export default {
 
     // Note styles
     'lnotes-eraser': 'eraser',
-    'lnotes-ln1': 'centered',
-    'lnotes-ln2': 'corner',
     'lnotes-ln3': 'label',
   },
   symbols: {
@@ -666,6 +668,20 @@ export default {
           <line x1="57" y1="48" x2="51" y2="48" />
           <line x1="48" y1="57" x2="48" y2="51" />
         </g>
+      </symbol>
+    ),
+    ln3: color => (
+      <symbol key="ln3" id="ln3" viewBox="0 0 12 12">
+        <text
+          x="1"
+          y="7"
+          style={{
+            font: '4px sans-serif',
+          }}
+          fill="black"
+        >
+          Text
+        </text>
       </symbol>
     ),
   },

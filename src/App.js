@@ -9,6 +9,7 @@ import Layer from './grid/Layer';
 import NotificationSystem from 'react-notification-system';
 import gridsHandler from './gridsHandler';
 import brushesHandler from './brushesHandler';
+import TextModal from './controls/modals/TextModal';
 import notif from './notifications';
 import './css/App.css';
 const configData = config.get();
@@ -39,7 +40,9 @@ class App extends Component {
       currentLayer: null,
       isPanning: false,
       displacement: { x: 0, y: 0 },
+      textModalOpen: false,
     };
+    this.currentCell = null;
     this.startPanCoord = null;
     this.startPanDisplacement = null;
     this.currentPos = 'center';
@@ -64,6 +67,8 @@ class App extends Component {
     this.switchShowGridlines = this.switchShowGridlines.bind(this);
     this.switchShowLayer = this.switchShowLayer.bind(this);
     this.handleCustomColorChange = this.handleCustomColorChange.bind(this);
+    this.handleTextModal = this.handleTextModal.bind(this);
+    this.createOrUpdateTextCell = this.createOrUpdateTextCell.bind(this);
   }
 
   changeColorTheme(value) {
@@ -239,6 +244,12 @@ class App extends Component {
         config.save(configToSave);
       }
     );
+  }
+
+  handleTextModal() {
+    this.setState(prevState => {
+      return { textModalOpen: !prevState.textModalOpen };
+    });
   }
 
   loadGridFromDb(type, name) {
@@ -453,6 +464,18 @@ class App extends Component {
         [this.currentPos]: currentBrush,
       },
     };
+    if (
+      this.state.currentLayer === 'lnotes' &&
+      this.state.currentBrush !== 'eraser'
+    ) {
+      // save for later
+      this.currentCell = newCell;
+      this.setState({
+        col,
+        row,
+      });
+      return;
+    }
     const newNeighborCell = {
       col: neighborIndex % utils.getColSize(),
       row: Math.floor(neighborIndex / utils.getColSize()),
@@ -593,6 +616,57 @@ class App extends Component {
     }
   }
 
+  createOrUpdateTextCell(text) {
+    const { currentLayer, grid } = this.state;
+    let newCell = this.currentCell;
+    newCell.text = text;
+    this.currentCell = null;
+    const i = utils.findCellIndex(grid.lnotes, newCell.col, newCell.row);
+    if (i !== -1) {
+      this.setState(prevState => {
+        return {
+          grid: {
+            ...grid,
+            [currentLayer]: [
+              ...grid[currentLayer].slice(0, i),
+              newCell,
+              ...grid[currentLayer].slice(i + 1),
+            ],
+          },
+          displayGrid: {
+            ...grid,
+            [currentLayer]: [
+              ...grid[currentLayer].slice(0, i),
+              newCell,
+              ...grid[currentLayer].slice(i + 1),
+            ],
+          },
+          activeGrid: {
+            ...prevState.activeGrid,
+            exportString: undefined,
+          },
+        };
+      });
+    } else {
+      this.setState(prevState => {
+        return {
+          grid: {
+            ...grid,
+            [currentLayer]: [...grid[currentLayer], newCell],
+          },
+          displayGrid: {
+            ...grid,
+            [currentLayer]: [...grid[currentLayer], newCell],
+          },
+          activeGrid: {
+            ...prevState.activeGrid,
+            exportString: undefined,
+          },
+        };
+      });
+    }
+  }
+
   handleZoom(event) {
     const sign = event.deltaY > 0 ? -1 : 1;
     const delta = sign * 0.07 * this.state.cellSize;
@@ -618,8 +692,29 @@ class App extends Component {
     }
   }
 
-  stopClickDrag() {
+  stopClickDrag(event) {
     this.currentIndexChanged = {};
+    if (
+      event.button === 0 &&
+      this.state.currentLayer === 'lnotes' &&
+      this.state.currentBrush !== 'eraser'
+    ) {
+      // find current cell in list of cells
+      const i = utils.findCellIndex(
+        this.state.grid.lnotes,
+        this.currentCell.col,
+        this.currentCell.row
+      );
+      if (i !== -1) {
+        this.currentCell = {
+          ...this.state.grid.lnotes[i],
+          content: {
+            center: this.currentCell.content.center,
+          },
+        };
+      }
+      this.handleTextModal();
+    }
     this.setState({
       isPanning: false,
     });
@@ -723,6 +818,9 @@ class App extends Component {
           var cell = document.querySelector("button"); document.getElementById()
           (baseElement.querySelector("div span").innerHTML);
         </script>
+        <div id="tooltip" className="tooltip">
+          <span className="tooltip-text">Tooltip text</span>
+        </div>
         <svg
           id="grid"
           className={`${this.state.isPanning ? 'panning' : ''}`}
@@ -819,6 +917,14 @@ class App extends Component {
           modalStyle={this.state.modalStyle}
         />
         <NotificationSystem ref="notificationSystem" />
+        <TextModal
+          showModal={this.state.textModalOpen}
+          handleShowModal={this.handleTextModal}
+          text={this.currentCell ? this.currentCell.text : undefined}
+          createOrUpdateTextCell={this.createOrUpdateTextCell}
+          colorTheme={this.state.colorTheme}
+          modalStyle={this.state.modalStyle}
+        />
       </div>
     );
   }

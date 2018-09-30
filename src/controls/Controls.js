@@ -378,7 +378,7 @@ class Controls extends Component {
                     colorThemes[this.props.colorTheme].controlsText
                   }}`}
               </style>
-              <ul className={`options-list`}>
+              <ul className="options-list">
                 <li>
                   <Checkbox
                     id="show-gridlines"

@@ -3,10 +3,10 @@ import React, { PureComponent } from 'react';
 class Cell extends PureComponent {
   render() {
     const { index, xPos, yPos, size, content } = this.props;
+    if (content === undefined) return null;
     const halfSize = size / 2;
     const x0 = xPos + halfSize;
     const y0 = yPos + halfSize;
-    if (content === undefined) return null;
     return (
       <g>
         {content.center ? (

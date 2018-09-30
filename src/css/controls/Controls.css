@@ -146,7 +146,7 @@
 }
 
 /* Options */
-.options-wrapper {
+.controls .options-wrapper {
   position: absolute;
   box-sizing: border-box;
   max-height: calc(100vh - 84px);
@@ -163,7 +163,7 @@
   z-index: 2;
 }
 
-.options-wrapper.open {
+.controls .options-wrapper.open {
   transform: translate3d(0,0,0);
 }
 

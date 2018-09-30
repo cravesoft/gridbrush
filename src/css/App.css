@@ -160,3 +160,20 @@ a {
 .Licon.ln1 { background-image: url(../img/_grids.gif); background-position: -300px 0px; }
 .ln2, .Licon.ln2 { background-image: url(../img/_grids.gif); background-position: -330px 0px; }
 .Licon.ln3 { background-image: url(../img/_grids.gif); background-position: -360px 0px; }
+
+.tooltip {
+  position: absolute;
+  border-bottom: 1px dotted black;
+  visibility: hidden;
+}
+
+.tooltip .tooltip-text {
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 1;
+}
