@@ -295,9 +295,8 @@
   position: relative;
   display: inline-block;
   width: 40px;
-  padding: 0;
+  padding: 5px 1px 1px 1px;
   cursor: pointer;
-  padding-top: 4px;
   text-align: center;
   margin-bottom: 2px;
   border-style: solid;
@@ -306,7 +305,9 @@
 }
 
 .toolbar .layer > div.selected {
-  border: 1px solid #0074d9;
+  border: 2px solid #0074d9;
+  background-color: rgb(221, 221, 221) !important;
+  padding: 4px 0px 0px 0px;
 }
 
 .toolbar .layer .icon {
