@@ -165,15 +165,13 @@ a {
   position: absolute;
   border-bottom: 1px dotted black;
   visibility: hidden;
+  background-color: black;
+  border-radius: 6px;
+  max-width: 300px;
+  padding: 5px;
 }
 
 .tooltip .tooltip-text {
-  width: 120px;
-  background-color: black;
   color: #fff;
-  text-align: center;
-  padding: 5px 0;
-  border-radius: 6px;
-  position: absolute;
   z-index: 1;
 }
