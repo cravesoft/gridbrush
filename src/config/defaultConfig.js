@@ -775,12 +775,13 @@ export default {
           strokeDasharray="4.333333333333333 4.333333333333333"
           stroke="black"
           strokeWidth="1.5"
+          strokeLinecap="square"
         />
       </symbol>
     ),
     w5v: color => (
       <symbol key="w5v" id="w5v" viewBox="0 0 26 26">
-        <g stroke="black" strokeWidth="1.5">
+        <g stroke="black" strokeWidth="1.5" strokeLinecap="square">
           <line x1="13" y1="0" x2="13" y2="26" />
           <path d="M13 5 C 18 5, 18 19, 13 19" fill="white" />
         </g>
@@ -788,7 +789,7 @@ export default {
     ),
     w6v: color => (
       <symbol key="w6v" id="w6v" viewBox="0 0 26 26">
-        <g stroke="black" strokeWidth="1.5">
+        <g stroke="black" strokeWidth="1.5" strokeLinecap="square">
           <line x1="13" y1="0" x2="13" y2="26" />
           <path d="M13 5 C 8 5, 8 19, 13 19" fill="white" />
         </g>
