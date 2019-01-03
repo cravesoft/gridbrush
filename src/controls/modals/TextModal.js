@@ -17,7 +17,7 @@ export default class TextModal extends Component {
       displayColorPicker: false,
     };
     this.handleShowModal = this.handleShowModal.bind(this);
-    this.createOrUpdateTextCell = this.createOrUpdateTextCell.bind(this);
+    this.submit = this.submit.bind(this);
     this.handleClickOutside = this.handleClickOutside.bind(this);
     this.toggleColorPicker = this.toggleColorPicker.bind(this);
     this.handleValueChange = this.handleValueChange.bind(this);
@@ -62,14 +62,14 @@ export default class TextModal extends Component {
         textRotation: null,
       },
       () => {
-        this.props.handleShowModal();
+        this.props.onShowTextModal();
       }
     );
   }
 
-  createOrUpdateTextCell(event) {
+  submit(event) {
     event.preventDefault();
-    this.props.createOrUpdateTextCell({
+    this.props.onSubmit({
       value: this.getTextValue(),
       show: this.getTextShow(),
       size: this.getTextSize(),
@@ -131,41 +131,42 @@ export default class TextModal extends Component {
   getTextValue() {
     return this.state.value
       ? this.state.value
-      : this.props.text && this.props.text.value
-        ? this.props.text.value
-        : '';
+      : this.props.currentContent && this.props.currentContent.value
+      ? this.props.currentContent.value
+      : '';
   }
 
   getTextShow() {
     return this.state.showText !== null
       ? this.state.showText
-      : this.props.text !== undefined && this.props.text.show != null
-        ? this.props.text.show
-        : config.get().showText;
+      : this.props.currentContent !== undefined &&
+        this.props.currentContent.show != null
+      ? this.props.currentContent.show
+      : config.get().showText;
   }
 
   getTextSize() {
     return this.state.textSize
       ? this.state.textSize
-      : this.props.text && this.props.text.size
-        ? this.props.text.size
-        : config.get().textSize;
+      : this.props.currentContent && this.props.currentContent.size
+      ? this.props.currentContent.size
+      : config.get().textSize;
   }
 
   getTextColor() {
     return this.state.textColor
       ? this.state.textColor
-      : this.props.text && this.props.text.color
-        ? this.props.text.color
-        : config.get().textColor;
+      : this.props.currentContent && this.props.currentContent.color
+      ? this.props.currentContent.color
+      : config.get().textColor;
   }
 
   getTextRotation() {
     return this.state.textRotation
       ? this.state.textRotation
-      : this.props.text && this.props.text.rotation
-        ? this.props.text.rotation
-        : 0;
+      : this.props.currentContent && this.props.currentContent.rotation
+      ? this.props.currentContent.rotation
+      : 0;
   }
 
   getTextColorInHexa() {
@@ -222,7 +223,7 @@ export default class TextModal extends Component {
             ''
           )}
           <h2>Text properties</h2>
-          <form onSubmit={this.createOrUpdateTextCell}>
+          <form onSubmit={this.submit}>
             <p>Write text below.</p>
             <textarea
               value={this.getTextValue()}

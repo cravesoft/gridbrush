@@ -72,6 +72,36 @@ class Cell extends PureComponent {
                 href={`#${content.right}`}
               />
             ) : null,
+            content.diag1 ? (
+              <use
+                key="diag1"
+                data-index={index}
+                x={xPos}
+                y={yPos}
+                width={size}
+                height={size}
+                href={`#${content.diag1}`}
+                style={{
+                  transform: 'rotate(-45deg) scale(1, 1.4142135623730951)',
+                  transformOrigin: `${x0}px ${y0}px`,
+                }}
+              />
+            ) : null,
+            content.diag2 ? (
+              <use
+                key="diag2"
+                data-index={index}
+                x={xPos}
+                y={yPos}
+                width={size}
+                height={size}
+                href={`#${content.diag2}`}
+                style={{
+                  transform: 'rotate(45deg) scale(1, 1.4142135623730951)',
+                  transformOrigin: `${x0}px ${y0}px`,
+                }}
+              />
+            ) : null,
           ]
         )}
       </g>

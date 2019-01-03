@@ -60,7 +60,7 @@ export default class Footer extends Component {
             className="social-cta twitter"
             href={twitterLink}
             target="_blank"
-            rel="noopener"
+            rel="noopener noreferrer"
           >
             <IconTwitter width={12} height={12} fill="#fff" /> Share on Twitter
           </a>

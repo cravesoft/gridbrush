@@ -10,7 +10,7 @@ class TextCell extends Component {
     let tooltip = document.getElementById('tooltip');
     tooltip.style.bottom = `${window.innerHeight - this.props.yPos}px`;
     tooltip.style.left = `${this.props.xPos}px`;
-    tooltip.childNodes[0].innerHTML = this.props.text.value.replace(
+    tooltip.childNodes[0].innerHTML = this.props.content.value.replace(
       /(?:\r\n|\r|\n)/g,
       '<br>'
     );
@@ -22,28 +22,29 @@ class TextCell extends Component {
   }
 
   render() {
-    const { index, xPos, yPos, size, content, text } = this.props;
+    const { index, xPos, yPos, size, content } = this.props;
     if (content === undefined) return null;
-    if (content.center === undefined || content.center === 'eraser')
-      return null;
-    const y0 = yPos + (size + text.size) / 2;
+    if (content.type === undefined || content.type === 'eraser') return null;
+    const y0 = yPos;
     const coef = 0.75;
     return (
       <g>
-        {text.show ? (
+        {content.show ? (
           <text
             data-index={index}
             x={xPos}
             y={y0}
             style={{
-              font: `bold ${text.size}px sans-serif`,
-              transform: `rotate(${text.rotation}deg)`,
+              font: `bold ${content.size}px sans-serif`,
+              transform: `rotate(${content.rotation}deg)`,
               transformOrigin: `${xPos}px ${y0}px`,
             }}
-            fill={`rgb(${text.color.r}, ${text.color.g}, ${text.color.b})`}
-            fillOpacity={text.color.a}
+            fill={`rgb(${content.color.r}, ${content.color.g}, ${
+              content.color.b
+            })`}
+            fillOpacity={content.color.a}
           >
-            {text.value.split('\n').map((value, i) => {
+            {content.value.split('\n').map((value, i) => {
               return (
                 <tspan x={xPos} dy="1.2em">
                   {value}

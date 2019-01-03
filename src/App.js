@@ -4,12 +4,16 @@ import config from './config/configHandler';
 import colorThemes from './config/colorThemes';
 import utils from './utils';
 import Controls from './controls/Controls';
+import Mouse from './Mouse';
 import Footer from './Footer';
 import Layer from './grid/Layer';
+import TextTool from './tools/TextTool';
+import PatchTool from './tools/PatchTool';
+import BackstitchTool from './tools/BackstitchTool';
+import Panning from './Panning';
 import NotificationSystem from 'react-notification-system';
 import gridsHandler from './gridsHandler';
 import brushesHandler from './brushesHandler';
-import TextModal from './controls/modals/TextModal';
 import notif from './notifications';
 import './css/App.css';
 const configData = config.get();
@@ -39,15 +43,13 @@ class App extends Component {
       currentBrush: null,
       currentLayer: null,
       isPanning: false,
-      displacement: { x: 0, y: 0 },
-      textModalOpen: false,
+      shiftCoord: { x: 0, y: 0 },
     };
-    this.currentCell = null;
     this.startPanCoord = null;
     this.startPanDisplacement = null;
-    this.currentPos = 'center';
     this.pixelRatio = window.devicePixelRatio;
     this.currentIndexChanged = {};
+    this.tools = {};
     this.changeColorTheme = this.changeColorTheme.bind(this);
     this.changeBrush = this.changeBrush.bind(this);
     this.resetGrid = this.resetGrid.bind(this);
@@ -60,15 +62,17 @@ class App extends Component {
     this.importBrush = this.importBrush.bind(this);
     this.loadBrushFromDb = this.loadBrushFromDb.bind(this);
     this.onResize = this.onResize.bind(this);
-    this.handleCellChangeState = this.handleCellChangeState.bind(this);
+    this.handleMouseActions = this.handleMouseActions.bind(this);
     this.handleZoom = this.handleZoom.bind(this);
-    this.stopClickDrag = this.stopClickDrag.bind(this);
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
     this.switchShowGridlines = this.switchShowGridlines.bind(this);
     this.switchShowLayer = this.switchShowLayer.bind(this);
     this.handleCustomColorChange = this.handleCustomColorChange.bind(this);
-    this.handleTextModal = this.handleTextModal.bind(this);
-    this.createOrUpdateTextCell = this.createOrUpdateTextCell.bind(this);
+    this.handlePanningChange = this.handlePanningChange.bind(this);
+    this.handleCoordChange = this.handleCoordChange.bind(this);
+    this.updateCellContent = this.updateCellContent.bind(this);
+    this.removeCell = this.removeCell.bind(this);
+    this.updateDisplayCellContent = this.updateDisplayCellContent.bind(this);
   }
 
   changeColorTheme(value) {
@@ -99,7 +103,7 @@ class App extends Component {
         displayGrid: utils.createGrid(),
         showLayers: utils.createShowLayers(),
         gridSize: utils.getGridSize(),
-        displacement: { x: 0, y: 0 },
+        shiftCoord: { x: 0, y: 0 },
         activeGrid: { name: null, exportString: null },
       },
       () => {
@@ -224,7 +228,7 @@ class App extends Component {
     }
     // Translate all cells to have the grid centered on the screen
     const min = utils.getMinCoords(gridData.grid);
-    const displacement = {
+    const shiftCoord = {
       x: -min.col * cellSize,
       y: -min.row * cellSize,
     };
@@ -238,18 +242,12 @@ class App extends Component {
         },
         displayGrid: gridData.grid,
         grid: gridData.grid,
-        displacement,
+        shiftCoord,
       },
       () => {
         config.save(configToSave);
       }
     );
-  }
-
-  handleTextModal() {
-    this.setState(prevState => {
-      return { textModalOpen: !prevState.textModalOpen };
-    });
   }
 
   loadGridFromDb(type, name) {
@@ -328,29 +326,10 @@ class App extends Component {
     this.changeCellSize(undefined);
   }
 
-  updateNeighbor(gridName, grid, newCell) {
-    const { currentLayer } = this.state;
-    const i = utils.findCellIndex(grid[currentLayer], newCell.col, newCell.row);
-    if (i === -1) return;
-    newCell.content = {
-      ...grid[currentLayer][i].content,
-      ...newCell.content,
-    };
-    this.setState({
-      [gridName]: {
-        ...grid,
-        [currentLayer]: [
-          ...grid[currentLayer].slice(0, i),
-          newCell,
-          ...grid[currentLayer].slice(i + 1),
-        ],
-      },
-    });
-  }
-
-  handleCellChangeState(event) {
-    // Prevent mouse events (mousedown & mousemove) to trigger immediatly after a 'touchstart'
-    // but allow mixed devices (mouse and touch) to use both type of inputs separately
+  handleMouseActions(event) {
+    // Prevent mouse events (mousedown & mousemove) to trigger immediatly after
+    // a 'touchstart' but allow mixed devices (mouse and touch) to use both type
+    // of inputs separately
     if (event.type === 'touchstart') {
       this.lastTouchedTime = new Date();
     } else if (event.type === 'mousedown' || event.type === 'mousemove') {
@@ -360,20 +339,29 @@ class App extends Component {
         }
       }
     }
-    const { currentLayer, currentBrush, grid } = this.state;
-    const pointerType = utils.getPointerType(event.type);
-    const moveEvent = pointerType === 'touch' ? 'touchmove' : 'mousemove';
     const isTouchEvent =
-      event.type === 'touchstart' || event.type === 'touchmove';
+      event.type === 'touchstart' ||
+      event.type === 'touchmove' ||
+      event.type === 'touchend';
+    const isMouseEvent =
+      event.type === 'mousedown' ||
+      event.type === 'mousemove' ||
+      event.type === 'mouseup';
     const svgWidth = Math.floor(this.svg.width / this.pixelRatio);
     const svgHeight = Math.floor(this.svg.height / this.pixelRatio);
     // [SAFARI BUG] event.buttons not recognized
     // https://github.com/facebook/react/issues/7122
     const buttonPressedCode =
-      event.buttons !== undefined ? event.buttons : event.nativeEvent.which;
+      event.type === 'mouseup'
+        ? event.button === 0
+          ? Mouse.LEFT_BUTTON
+          : Mouse.MIDDLE_BUTTON
+        : event.buttons !== undefined
+        ? event.buttons
+        : event.nativeEvent.which;
     let x, y;
     const { left, top } = this.svg.getBoundingClientRect();
-    if (event.type === 'mousedown' || event.type === 'mousemove') {
+    if (isMouseEvent) {
       x = event.pageX - left;
       y = event.pageY - top;
     } else if (isTouchEvent) {
@@ -384,177 +372,28 @@ class App extends Component {
     if (x < 0 || x > svgWidth || y < 0 || y > svgHeight) {
       return;
     }
-    if (buttonPressedCode === 4) {
-      if (event.type === 'mousedown') {
-        this.startPanCoord = {
-          x: event.pageX,
-          y: event.pageY,
-        };
-        this.startPanDisplacement = this.state.displacement;
-        this.setState({
-          isPanning: true,
-        });
-      } else if (event.type === 'mousemove') {
-        const displacement = {
-          x: this.startPanDisplacement.x + event.pageX - this.startPanCoord.x,
-          y: this.startPanDisplacement.y + event.pageY - this.startPanCoord.y,
-        };
-        this.setState({
-          isPanning: true,
-          displacement,
-        });
-      }
-      return event.preventDefault();
-    }
-    x -= this.state.displacement.x;
-    y -= this.state.displacement.y;
-    let cellSize = this.state.cellSize;
-    let col = Math.floor(x / cellSize);
-    let row = Math.floor(y / cellSize);
-    const cellIndex = row * utils.getColSize() + col;
-    let neighborIndex = null;
-    let neighborPos = null;
-    if (currentLayer === 'lwallv' || currentLayer === 'lwallvm') {
-      if (buttonPressedCode !== 1) {
-        let diff = x % cellSize;
-        if (diff < 5) {
-          this.currentPos = 'left';
-        } else if (cellSize - diff < 5) {
-          this.currentPos = 'right';
-        } else {
-          diff = y % cellSize;
-          if (diff < 5) {
-            this.currentPos = 'top';
-          } else if (cellSize - diff < 5) {
-            this.currentPos = 'bottom';
-          }
-        }
-      } else {
-        let diff = x % cellSize;
-        if (diff < 5 && this.currentPos === 'right') {
-          this.currentPos = 'left';
-        } else if (cellSize - diff < 5 && this.currentPos === 'left') {
-          this.currentPos = 'right';
-        } else {
-          diff = y % cellSize;
-          if (diff < 5 && this.currentPos === 'bottom') {
-            this.currentPos = 'top';
-          } else if (cellSize - diff < 5 && this.currentPos === 'top') {
-            this.currentPos = 'bottom';
-          }
-        }
-      }
-      neighborIndex = utils.getNeighborIndex(cellIndex, this.currentPos);
-      neighborPos =
-        this.currentPos === 'top'
-          ? 'bottom'
-          : this.currentPos === 'bottom'
-            ? 'top'
-            : this.currentPos === 'left'
-              ? 'right'
-              : 'left';
-    } else {
-      this.currentPos = 'center';
-    }
-    // if mouse over the svg but not clicking
-    const newCell = {
-      col: col,
-      row: row,
-      content: {
-        [this.currentPos]: currentBrush,
-      },
-    };
-    if (
-      this.state.currentLayer === 'lnotes' &&
-      this.state.currentBrush !== 'eraser'
-    ) {
-      // save for later
-      this.currentCell = newCell;
-      this.setState({
+    x -= this.state.shiftCoord.x;
+    y -= this.state.shiftCoord.y;
+
+    if (buttonPressedCode === Mouse.MIDDLE_BUTTON)
+      this.panning[event.type](event);
+    else
+      this.tools[this.state.currentLayer][event.type](
+        buttonPressedCode,
+        x,
+        y,
+        event
+      );
+  }
+
+  updateCellContent(col, row, content, callback) {
+    const { currentLayer, grid } = this.state;
+    const cellIndex = utils.findCellIndex(grid[currentLayer], col, row);
+    if (cellIndex === -1) {
+      const newCell = {
         col,
         row,
-      });
-      return;
-    }
-    const newNeighborCell = {
-      col: neighborIndex % utils.getColSize(),
-      row: Math.floor(neighborIndex / utils.getColSize()),
-      content: {
-        [neighborPos]: undefined,
-      },
-    };
-    if (event.type === 'mousemove' && buttonPressedCode !== 1) {
-      let i = utils.findCellIndex(grid[currentLayer], col, row);
-      if (i !== -1) {
-        newCell.content = {
-          ...grid[currentLayer][i].content,
-          ...newCell.content,
-        };
-        this.setState(
-          {
-            col,
-            row,
-            displayGrid: {
-              ...grid,
-              [currentLayer]: [
-                ...grid[currentLayer].slice(0, i),
-                newCell,
-                ...grid[currentLayer].slice(i + 1),
-              ],
-            },
-          },
-          () => {
-            if (neighborIndex)
-              this.updateNeighbor(
-                'displayGrid',
-                this.state.displayGrid,
-                newNeighborCell
-              );
-          }
-        );
-      } else {
-        this.setState(
-          {
-            col,
-            row,
-            displayGrid: {
-              ...grid,
-              [currentLayer]: [...grid[currentLayer], newCell, newNeighborCell],
-            },
-          },
-          () => {
-            if (neighborIndex)
-              this.updateNeighbor(
-                'displayGrid',
-                this.state.displayGrid,
-                newNeighborCell
-              );
-          }
-        );
-      }
-      return;
-    }
-
-    if (event.type === moveEvent) {
-      // Don't switch a cell multiple times or cell with the
-      // same state as the new one changed
-      if (
-        this.currentIndexChanged.hasOwnProperty(cellIndex) ||
-        this.state.grid[currentLayer][cellIndex] === currentBrush
-      ) {
-        return;
-      }
-
-      this.currentIndexChanged[cellIndex] = true;
-    }
-    if (buttonPressedCode !== 1) {
-      return event.preventDefault();
-    }
-    let i = utils.findCellIndex(grid[currentLayer], col, row);
-    if (i !== -1) {
-      newCell.content = {
-        ...grid[currentLayer][i].content,
-        ...newCell.content,
+        content,
       };
       this.setState(
         prevState => {
@@ -563,19 +402,11 @@ class App extends Component {
             row,
             grid: {
               ...grid,
-              [currentLayer]: [
-                ...grid[currentLayer].slice(0, i),
-                newCell,
-                ...grid[currentLayer].slice(i + 1),
-              ],
+              [currentLayer]: [...grid[currentLayer], newCell],
             },
             displayGrid: {
               ...grid,
-              [currentLayer]: [
-                ...grid[currentLayer].slice(0, i),
-                newCell,
-                ...grid[currentLayer].slice(i + 1),
-              ],
+              [currentLayer]: [...grid[currentLayer], newCell],
             },
             activeGrid: {
               ...prevState.activeGrid,
@@ -584,8 +415,9 @@ class App extends Component {
           };
         },
         () => {
-          if (neighborIndex)
-            this.updateNeighbor('grid', this.state.grid, newNeighborCell);
+          if (callback) {
+            callback();
+          }
         }
       );
     } else {
@@ -596,11 +428,31 @@ class App extends Component {
             row,
             grid: {
               ...grid,
-              [currentLayer]: [...grid[currentLayer], newCell],
+              [currentLayer]: [
+                ...grid[currentLayer].slice(0, cellIndex),
+                {
+                  ...grid[currentLayer][cellIndex],
+                  content: {
+                    ...grid[currentLayer][cellIndex].content,
+                    ...content,
+                  },
+                },
+                ...grid[currentLayer].slice(cellIndex + 1),
+              ],
             },
             displayGrid: {
               ...grid,
-              [currentLayer]: [...grid[currentLayer], newCell],
+              [currentLayer]: [
+                ...grid[currentLayer].slice(0, cellIndex),
+                {
+                  ...grid[currentLayer][cellIndex],
+                  content: {
+                    ...grid[currentLayer][cellIndex].content,
+                    ...content,
+                  },
+                },
+                ...grid[currentLayer].slice(cellIndex + 1),
+              ],
             },
             activeGrid: {
               ...prevState.activeGrid,
@@ -609,61 +461,87 @@ class App extends Component {
           };
         },
         () => {
-          if (neighborIndex)
-            this.updateNeighbor('grid', this.state.grid, newNeighborCell);
+          if (callback) {
+            callback();
+          }
         }
       );
     }
   }
 
-  createOrUpdateTextCell(text) {
+  removeCell(col, row, callback) {
     const { currentLayer, grid } = this.state;
-    let newCell = this.currentCell;
-    newCell.text = text;
-    this.currentCell = null;
-    const i = utils.findCellIndex(grid.lnotes, newCell.col, newCell.row);
-    if (i !== -1) {
-      this.setState(prevState => {
-        return {
-          grid: {
-            ...grid,
-            [currentLayer]: [
-              ...grid[currentLayer].slice(0, i),
-              newCell,
-              ...grid[currentLayer].slice(i + 1),
-            ],
-          },
-          displayGrid: {
-            ...grid,
-            [currentLayer]: [
-              ...grid[currentLayer].slice(0, i),
-              newCell,
-              ...grid[currentLayer].slice(i + 1),
-            ],
-          },
-          activeGrid: {
-            ...prevState.activeGrid,
-            exportString: undefined,
-          },
-        };
+    const cellIndex = utils.findCellIndex(grid[currentLayer], col, row);
+    if (cellIndex === -1) {
+      return;
+    } else {
+      this.setState(
+        prevState => {
+          return {
+            col,
+            row,
+            grid: {
+              ...grid,
+              [currentLayer]: [
+                ...grid[currentLayer].slice(0, cellIndex),
+                ...grid[currentLayer].slice(cellIndex + 1),
+              ],
+            },
+            displayGrid: {
+              ...grid,
+              [currentLayer]: [
+                ...grid[currentLayer].slice(0, cellIndex),
+                ...grid[currentLayer].slice(cellIndex + 1),
+              ],
+            },
+            activeGrid: {
+              ...prevState.activeGrid,
+              exportString: undefined,
+            },
+          };
+        },
+        () => {
+          if (callback) {
+            callback();
+          }
+        }
+      );
+    }
+  }
+
+  updateDisplayCellContent(col, row, content) {
+    const { currentLayer, grid } = this.state;
+    const cellIndex = utils.findCellIndex(grid[currentLayer], col, row);
+    if (cellIndex === -1) {
+      const newCell = {
+        col,
+        row,
+        content,
+      };
+      this.setState({
+        col,
+        row,
+        displayGrid: {
+          ...grid,
+          [currentLayer]: [...grid[currentLayer], newCell],
+        },
       });
     } else {
-      this.setState(prevState => {
-        return {
-          grid: {
-            ...grid,
-            [currentLayer]: [...grid[currentLayer], newCell],
-          },
-          displayGrid: {
-            ...grid,
-            [currentLayer]: [...grid[currentLayer], newCell],
-          },
-          activeGrid: {
-            ...prevState.activeGrid,
-            exportString: undefined,
-          },
-        };
-      });
+      this.setState(prevState => ({
+        col,
+        row,
+        displayGrid: {
+          ...grid,
+          [currentLayer]: [
+            ...grid[currentLayer].slice(0, cellIndex),
+            {
+              ...grid[currentLayer][cellIndex],
+              content,
+            },
+            ...grid[currentLayer].slice(cellIndex + 1),
+          ],
+        },
+      }));
     }
   }
 
@@ -672,17 +550,16 @@ class App extends Component {
     const delta = sign * 0.07 * this.state.cellSize;
     const newCellSize = this.state.cellSize + delta;
     if (event.deltaY < 0) {
-      const displacement = {
+      const shiftCoord = {
         x:
-          this.state.displacement.x -
-          0.1 * (event.pageX - window.innerWidth / 2),
+          this.state.shiftCoord.x - 0.1 * (event.pageX - window.innerWidth / 2),
         y:
-          this.state.displacement.y -
+          this.state.shiftCoord.y -
           0.1 * (event.pageY - window.innerHeight / 2),
       };
       this.setState(
         {
-          displacement,
+          shiftCoord,
         },
         () => {}
       );
@@ -690,34 +567,6 @@ class App extends Component {
     } else {
       this.changeCellSize(newCellSize);
     }
-  }
-
-  stopClickDrag(event) {
-    this.currentIndexChanged = {};
-    if (
-      event.button === 0 &&
-      this.state.currentLayer === 'lnotes' &&
-      this.state.currentBrush !== 'eraser'
-    ) {
-      // find current cell in list of cells
-      const i = utils.findCellIndex(
-        this.state.grid.lnotes,
-        this.currentCell.col,
-        this.currentCell.row
-      );
-      if (i !== -1) {
-        this.currentCell = {
-          ...this.state.grid.lnotes[i],
-          content: {
-            center: this.currentCell.content.center,
-          },
-        };
-      }
-      this.handleTextModal();
-    }
-    this.setState({
-      isPanning: false,
-    });
   }
 
   handleMouseLeave() {
@@ -762,6 +611,20 @@ class App extends Component {
         config.save(value);
       }
     );
+  }
+
+  handlePanningChange(isPanning, shiftCoord) {
+    this.setState({
+      isPanning,
+      shiftCoord,
+    });
+  }
+
+  handleCoordChange(coord) {
+    this.setState({
+      col: coord.col,
+      row: coord.row,
+    });
   }
 
   componentWillMount() {
@@ -831,19 +694,19 @@ class App extends Component {
           height={wrapperHeight * this.pixelRatio}
           style={svgStyle}
           ref={svg => (this.svg = svg)}
-          onMouseMove={this.handleCellChangeState}
-          onMouseDown={this.handleCellChangeState}
-          onMouseUp={this.stopClickDrag}
+          onMouseMove={this.handleMouseActions}
+          onMouseDown={this.handleMouseActions}
+          onMouseUp={this.handleMouseActions}
           onMouseLeave={this.handleMouseLeave}
-          onTouchStart={this.handleCellChangeState}
-          onTouchMove={this.handleCellChangeState}
-          onTouchEnd={this.stopClickDrag}
+          onTouchStart={this.handleMouseActions}
+          onTouchMove={this.handleMouseActions}
+          onTouchEnd={this.handleMouseActions}
           onWheel={this.handleZoom}
         >
           <defs>
             <pattern
-              x={this.state.displacement.x}
-              y={this.state.displacement.y}
+              x={this.state.shiftCoord.x}
+              y={this.state.shiftCoord.y}
               id="grid-pattern"
               width={this.state.cellSize}
               height={this.state.cellSize}
@@ -876,7 +739,7 @@ class App extends Component {
                 name={layerName}
                 cellSize={this.state.cellSize}
                 cells={this.state.displayGrid[layerName]}
-                displacement={this.state.displacement}
+                shiftCoord={this.state.shiftCoord}
               />
             );
           })}
@@ -916,15 +779,59 @@ class App extends Component {
           colorTheme={this.state.colorTheme}
           modalStyle={this.state.modalStyle}
         />
-        <NotificationSystem ref="notificationSystem" />
-        <TextModal
-          showModal={this.state.textModalOpen}
-          handleShowModal={this.handleTextModal}
-          text={this.currentCell ? this.currentCell.text : undefined}
-          createOrUpdateTextCell={this.createOrUpdateTextCell}
-          colorTheme={this.state.colorTheme}
+        <Panning
+          ref={panning => (this.panning = panning)}
+          isPanning={this.state.isPanning}
+          shiftCoord={this.state.shiftCoord}
+          onChange={this.handlePanningChange}
+        />
+        <PatchTool
+          ref={tool => (this.tools['lgrid'] = tool)}
+          cellSize={this.state.cellSize}
+          currentBrush={this.state.currentBrush}
+          updateCellContent={this.updateCellContent}
+          updateDisplayCellContent={this.updateDisplayCellContent}
+        />
+        <PatchTool
+          ref={tool => (this.tools['lfloor'] = tool)}
+          cellSize={this.state.cellSize}
+          currentBrush={this.state.currentBrush}
+          updateCellContent={this.updateCellContent}
+          updateDisplayCellContent={this.updateDisplayCellContent}
+        />
+        <PatchTool
+          ref={tool => (this.tools['lfloorm'] = tool)}
+          cellSize={this.state.cellSize}
+          currentBrush={this.state.currentBrush}
+          updateCellContent={this.updateCellContent}
+          updateDisplayCellContent={this.updateDisplayCellContent}
+        />
+        <BackstitchTool
+          ref={tool => (this.tools['lwallv'] = tool)}
+          cellSize={this.state.cellSize}
+          currentBrush={this.state.currentBrush}
+          onCoordChange={this.handleCoordChange}
+          updateCellContent={this.updateCellContent}
+        />
+        <BackstitchTool
+          ref={tool => (this.tools['lwallvm'] = tool)}
+          cellSize={this.state.cellSize}
+          currentBrush={this.state.currentBrush}
+          onCoordChange={this.handleCoordChange}
+          updateCellContent={this.updateCellContent}
+        />
+        <TextTool
+          ref={tool => (this.tools['lnotes'] = tool)}
+          cellSize={this.state.cellSize}
+          currentBrush={this.state.currentBrush}
+          layer={this.state.grid.lnotes}
+          shiftCoord={this.state.shiftCoord}
+          onCoordChange={this.handleCoordChange}
+          removeCell={this.removeCell}
+          updateCellContent={this.updateCellContent}
           modalStyle={this.state.modalStyle}
         />
+        <NotificationSystem ref="notificationSystem" />
       </div>
     );
   }

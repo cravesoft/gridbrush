@@ -740,7 +740,12 @@ export default {
     ),
     w2v: color => (
       <symbol key="w2v" id="w2v" viewBox="0 0 26 26">
-        <g stroke="black" strokeWidth="1.5" strokeLinecap="square">
+        <g
+          stroke="black"
+          strokeWidth="1.5"
+          strokeLinecap="square"
+          vectorEffect="non-scaling-stroke"
+        >
           <rect
             x="11.5"
             y="4"
@@ -748,6 +753,7 @@ export default {
             height="18"
             fill="white"
             strokeWidth="0.5"
+            vectorEffect="non-scaling-stroke"
           />
           <line x1="13" y1="0" x2="13" y2="4" />
           <line x1="11.5" y1="4" x2="14.4" y2="4" />

@@ -65,8 +65,8 @@ export default class SaveGridModal extends Component {
                   this.state.name
                     ? this.state.name
                     : this.props.activeGrid.name
-                      ? this.props.activeGrid.name
-                      : ''
+                    ? this.props.activeGrid.name
+                    : ''
                 }
                 onChange={this.handleNameChange}
               />

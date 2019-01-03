@@ -133,19 +133,6 @@ export default {
       ? 'mobile'
       : 'desktop',
 
-  getNeighborIndex: (index, border) => {
-    if (border === 'top') {
-      return index - colSize;
-    } else if (border === 'left') {
-      return index - 1;
-    } else if (border === 'right') {
-      return index + 1;
-    } else if (border === 'bottom') {
-      return index + colSize;
-    }
-    return null;
-  },
-
   getSVGString: svgNode => {
     const appendCSS = (cssText, element) => {
       var styleElement = document.createElement('style');

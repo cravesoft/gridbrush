@@ -4,13 +4,13 @@ import TextCell from './TextCell';
 
 class Layer extends Component {
   render() {
-    const { name, cellSize, cells, displacement } = this.props;
+    const { name, cellSize, cells, shiftCoord } = this.props;
     if (name === 'lnotes')
       return (
         <g id={name}>
           {cells.map((cell, i) => {
-            const xPos = cell.col * cellSize + displacement.x;
-            const yPos = cell.row * cellSize + displacement.y;
+            const xPos = cell.col * cellSize + shiftCoord.x;
+            const yPos = cell.row * cellSize + shiftCoord.y;
             return (
               <TextCell
                 key={i}
@@ -19,7 +19,6 @@ class Layer extends Component {
                 yPos={yPos}
                 size={cellSize}
                 content={cell.content}
-                text={cell.text}
               />
             );
           })}
@@ -29,8 +28,8 @@ class Layer extends Component {
       return (
         <g id={name}>
           {cells.map((cell, i) => {
-            const xPos = cell.col * cellSize + displacement.x;
-            const yPos = cell.row * cellSize + displacement.y;
+            const xPos = cell.col * cellSize + shiftCoord.x;
+            const yPos = cell.row * cellSize + shiftCoord.y;
             return (
               <Cell
                 key={i}
