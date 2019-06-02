@@ -4,9 +4,9 @@ import gridsHandler from '../../gridsHandler';
 import config from '../../config/configHandler';
 import notif from '../../notifications';
 import colorThemes from '../../config/colorThemes';
-import IconFolderOpen from '../../media/icon-folder-open.svg';
-import IconCross from '../../media/icon-cross.svg';
-import IconLink from '../../media/icon-link.svg';
+import { ReactComponent as IconFolderOpen } from '../../media/icon-folder-open.svg';
+import { ReactComponent as IconCross } from '../../media/icon-cross.svg';
+import { ReactComponent as IconLink } from '../../media/icon-link.svg';
 
 class ManageGridsModal extends Component {
   constructor(props) {

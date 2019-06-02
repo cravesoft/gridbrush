@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import colorThemes from './config/colorThemes';
-import IconGithub from './media/icon-github.svg';
-import IconFacebook from './media/icon-facebook.svg';
-import IconTwitter from './media/icon-twitter.svg';
+import { ReactComponent as IconGithub } from './media/icon-github.svg';
+import { ReactComponent as IconFacebook } from './media/icon-facebook.svg';
+import { ReactComponent as IconTwitter } from './media/icon-twitter.svg';
 import AboutModal from './controls/modals/AboutModal';
 import pckg from '../package.json';
 import './css/Footer.css';

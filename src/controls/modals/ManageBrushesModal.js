@@ -4,9 +4,9 @@ import brushesHandler from '../../brushesHandler';
 import config from '../../config/configHandler';
 import notif from '../../notifications';
 import colorThemes from '../../config/colorThemes';
-import IconFolderOpen from '../../media/icon-folder-open.svg';
-import IconCross from '../../media/icon-cross.svg';
-import IconLink from '../../media/icon-link.svg';
+import { ReactComponent as IconFolderOpen } from '../../media/icon-folder-open.svg';
+import { ReactComponent as IconCross } from '../../media/icon-cross.svg';
+import { ReactComponent as IconLink } from '../../media/icon-link.svg';
 
 export default class ManageBrushesModal extends Component {
   constructor(props) {
